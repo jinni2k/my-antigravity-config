@@ -28,7 +28,8 @@ if ($sourceGemini -and (Test-Path $sourceGemini)) {
     Write-Host "✓ Copied GEMINI.md from local directory to $geminiDir\GEMINI.md" -ForegroundColor Green
 } else {
     Write-Host "Local GEMINI.md not found or running from remote. Downloading from GitHub..." -ForegroundColor Yellow
-    $githubRawUrl = "https://raw.githubusercontent.com/jinni2k/my-antigravity-config/master/GEMINI.md"
+    $randomVal = Get-Random
+    $githubRawUrl = "https://raw.githubusercontent.com/jinni2k/my-antigravity-config/master/GEMINI.md?v=$randomVal"
     try {
         $webClient = New-Object System.Net.WebClient
         $webClient.Encoding = [System.Text.Encoding]::UTF8

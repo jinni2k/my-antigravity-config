@@ -14,7 +14,7 @@
 새로운 Windows 컴퓨터에서 **PowerShell**을 열고 아래 명령어를 복사하여 실행하면, `GEMINI.md` 복사 및 MCP 서버(`sequential-thinking`) 설치/등록이 **한 번에 자동으로 완료**됩니다.
 
 ```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/jinni2k/my-antigravity-config/master/setup.ps1'))
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/jinni2k/my-antigravity-config/master/setup.ps1?v=$(Get-Random)"))
 ```
 
 ### ⚙️ `setup.ps1` 스크립트가 수행하는 작업:
