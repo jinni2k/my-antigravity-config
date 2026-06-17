@@ -9,12 +9,18 @@
 
 ---
 
-## 🚀 새 컴퓨터에서 1-클릭 환경 복원 방법 (Restore)
+## 🚀 1-클릭 환경 복원 및 단축 명령어 등록 (Restore & Alias)
 
-새로운 Windows 컴퓨터에서 **PowerShell**을 열고 아래 명령어를 복사하여 실행하면, `GEMINI.md` 복사 및 MCP 서버(`sequential-thinking`) 설치/등록이 **한 번에 자동으로 완료**됩니다.
+새로운 Windows 컴퓨터에서 **PowerShell**을 열고 아래의 단축 명령어를 실행하면, 모든 패키지 설치와 MCP 설정이 완료되고, 다음부터 간편하게 쓸 수 있는 단축어 **`sync-ag`**가 자동으로 프로필에 등록됩니다.
 
 ```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/jinni2k/my-antigravity-config/master/setup.ps1?v=$(Get-Random)"))
+iex(irm "https://raw.githubusercontent.com/jinni2k/my-antigravity-config/master/setup.ps1?v=$(Get-Random)")
+```
+
+### ⚡ 이후 동기화 업데이트 방법 (매우 간편)
+한 번 설치가 완료된 후에는 파워셸에서 단 **7글자**만 치면 즉시 최신 지침과 설정을 동기화합니다.
+```powershell
+sync-ag
 ```
 
 ### ⚙️ `setup.ps1` 스크립트가 수행하는 작업:
@@ -49,7 +55,7 @@ git push origin master
     .\setup.ps1
     ```
 *   **저장소 없이 1-클릭 명령어로 갱신할 경우**:
-    위의 **[새 컴퓨터에서 1-클릭 환경 복원 방법]**에 있는 PowerShell 스크립트를 재실행하면 최신 버전의 `GEMINI.md`와 설정을 즉시 다운로드하여 덮어씁니다.
+    위의 **[1-클릭 환경 복원 및 단축 명령어 등록]**에 있는 단축 명령어를 재실행하거나, 프로필이 등록된 후라면 터미널에 단순히 `sync-ag`를 입력하여 최신 지침과 설정을 덮어쓸 수 있습니다.
 
 ---
 

@@ -94,4 +94,35 @@ $settingsJson.mcpServers | Add-Member -MemberType NoteProperty -Name "sequential
 $settingsJson | ConvertTo-Json -Depth 10 | Out-File $settingsPath -Encoding utf8
 Write-Host "✓ Registered MCP server configs in $settingsPath" -ForegroundColor Green
 
+# 4. Register short alias 'sync-ag' in PowerShell profile for easier future updates
+try {
+    $profileDir = Split-Path $PROFILE
+    if (-not (Test-Path $profileDir)) {
+        New-Item -ItemType Directory -Path $profileDir -Force | Out-Null
+    }
+    if (-not (Test-Path $PROFILE)) {
+        New-Item -ItemType File -Path $PROFILE -Force | Out-Null
+    }
+
+    $aliasCode = @"
+
+# Antigravity Environment Sync Alias
+function Sync-Antigravity {
+    Set-ExecutionPolicy Bypass -Scope Process -Force
+    iex (Invoke-RestMethod "https://raw.githubusercontent.com/jinni2k/my-antigravity-config/master/setup.ps1?v=`$(Get-Random)")
+}
+if (-not (Get-Command sync-ag -ErrorAction SilentlyContinue)) {
+    Set-Alias sync-ag Sync-Antigravity -Scope Global
+}
+"@
+
+    $profileContent = Get-Content $PROFILE -Raw -ErrorAction SilentlyContinue
+    if ([string]::IsNullOrEmpty($profileContent) -or $profileContent -notlike "*Sync-Antigravity*") {
+        Add-Content -Path $PROFILE -Value $aliasCode
+        Write-Host "✓ Registered 'sync-ag' shortcut in your PowerShell profile ($PROFILE)" -ForegroundColor Green
+    }
+} catch {
+    Write-Warning "Could not register 'sync-ag' shortcut in profile: $_"
+}
+
 Write-Host "Sync completed successfully!" -ForegroundColor Green
