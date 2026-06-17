@@ -12,14 +12,31 @@ if (-not (Test-Path $geminiDir)) {
     Write-Host "Created directory: $geminiDir" -ForegroundColor Yellow
 }
 
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-$sourceGemini = Join-Path $scriptDir "GEMINI.md"
+# Get the script definition path
+$scriptPath = $MyInvocation.MyCommand.Definition
+$scriptDir = ""
+$sourceGemini = ""
 
-if (Test-Path $sourceGemini) {
+# Check if definition is a valid local file path
+if ($scriptPath -and (Test-Path $scriptPath -IsValid) -and (Test-Path $scriptPath)) {
+    $scriptDir = Split-Path -Parent $scriptPath
+    $sourceGemini = Join-Path $scriptDir "GEMINI.md"
+}
+
+if ($sourceGemini -and (Test-Path $sourceGemini)) {
     Copy-Item -Path $sourceGemini -Destination (Join-Path $geminiDir "GEMINI.md") -Force
-    Write-Host "✓ Copied GEMINI.md to $geminiDir\GEMINI.md" -ForegroundColor Green
+    Write-Host "✓ Copied GEMINI.md from local directory to $geminiDir\GEMINI.md" -ForegroundColor Green
 } else {
-    Write-Warning "Source GEMINI.md not found in the script directory."
+    Write-Host "Local GEMINI.md not found or running from remote. Downloading from GitHub..." -ForegroundColor Yellow
+    $githubRawUrl = "https://raw.githubusercontent.com/jinni2k/my-antigravity-config/master/GEMINI.md"
+    try {
+        $webClient = New-Object System.Net.WebClient
+        $webClient.Encoding = [System.Text.Encoding]::UTF8
+        $webClient.DownloadFile($githubRawUrl, (Join-Path $geminiDir "GEMINI.md"))
+        Write-Host "✓ Downloaded and saved GEMINI.md from GitHub" -ForegroundColor Green
+    } catch {
+        Write-Error "Failed to download GEMINI.md from GitHub: $_"
+    }
 }
 
 # 2. Verify Node.js/npm and install Sequential Thinking MCP globally
