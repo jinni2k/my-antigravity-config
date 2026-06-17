@@ -19,7 +19,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.We
 
 ### ⚙️ `setup.ps1` 스크립트가 수행하는 작업:
 1.  `C:\Users\[사용자명]\.gemini\` 디렉토리를 생성하고 `GEMINI.md` 파일을 배치합니다.
-2.  Node.js/npm 환경을 확인한 뒤, 글로벌 MCP 패키지(`@modelcontextprotocol/server-sequential-thinking`)를 설치합니다.
+2.  Node.js/npm 환경을 확인한 뒤, 글로벌 MCP 패키지(`@modelcontextprotocol/server-sequential-thinking` 및 `oh-my-agent`)를 설치합니다.
 3.  기존 설정을 유지하면서 전역 설정 파일(`%APPDATA%\Code\User\globalSettings.json`)의 `mcpServers`에 `sequential-thinking` 설정을 안전하게 등록/갱신합니다.
 
 ---
