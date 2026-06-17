@@ -40,13 +40,13 @@ if ($sourceGemini -and (Test-Path $sourceGemini)) {
     }
 }
 
-# 2. Verify Node.js/npm and install Sequential Thinking MCP globally
+# 2. Verify Node.js/npm and install globally via npm
 if (Get-Command npm -ErrorAction SilentlyContinue) {
-    Write-Host "Installing @modelcontextprotocol/server-sequential-thinking globally via npm..." -ForegroundColor Yellow
-    npm install -g @modelcontextprotocol/server-sequential-thinking
-    Write-Host "✓ Global MCP package installed." -ForegroundColor Green
+    Write-Host "Installing @modelcontextprotocol/server-sequential-thinking and oh-my-agent globally via npm..." -ForegroundColor Yellow
+    npm install -g @modelcontextprotocol/server-sequential-thinking oh-my-agent
+    Write-Host "✓ Global npm packages installed." -ForegroundColor Green
 } else {
-    Write-Warning "npm not found. Please install Node.js first, then run 'npm install -g @modelcontextprotocol/server-sequential-thinking' manually."
+    Write-Warning "npm not found. Please install Node.js first, then run 'npm install -g @modelcontextprotocol/server-sequential-thinking oh-my-agent' manually."
 }
 
 # 3. Safely merge configuration into globalSettings.json
