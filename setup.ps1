@@ -5,6 +5,20 @@ $ErrorActionPreference = "Stop"
 
 Write-Host "Starting Antigravity environment sync..." -ForegroundColor Cyan
 
+# 0. Check and install Antigravity CLI (agy) if not installed
+if (-not (Get-Command agy -ErrorAction SilentlyContinue)) {
+    Write-Host "Antigravity CLI (agy) not found. Installing..." -ForegroundColor Yellow
+    try {
+        $installScript = Invoke-RestMethod "https://antigravity.google/cli/install.ps1"
+        Invoke-Expression $installScript
+        Write-Host "✓ Antigravity CLI (agy) installation command executed." -ForegroundColor Green
+    } catch {
+        Write-Warning "Could not install Antigravity CLI automatically: $_. Please run 'irm https://antigravity.google/cli/install.ps1 | iex' manually."
+    }
+} else {
+    Write-Host "✓ Antigravity CLI (agy) is already installed." -ForegroundColor Green
+}
+
 # 1. Ensure .gemini directory exists and copy GEMINI.md
 $geminiDir = "$HOME\.gemini"
 if (-not (Test-Path $geminiDir)) {

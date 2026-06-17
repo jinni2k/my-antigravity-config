@@ -24,9 +24,10 @@ sync-ag
 ```
 
 ### ⚙️ `setup.ps1` 스크립트가 수행하는 작업:
-1.  `C:\Users\[사용자명]\.gemini\` 디렉토리를 생성하고 `GEMINI.md` 파일을 배치합니다.
-2.  Node.js/npm 환경을 확인한 뒤, 글로벌 MCP 패키지(`@modelcontextprotocol/server-sequential-thinking` 및 `oh-my-agent`)를 설치합니다.
-3.  기존 설정을 유지하면서 전역 설정 파일(`%APPDATA%\Code\User\globalSettings.json`)의 `mcpServers`에 `sequential-thinking` 설정을 안전하게 등록/갱신합니다.
+1.  시스템에 안티그래비티 CLI(`agy`)가 설치되어 있지 않다면 공식 권장 스크립트를 통해 자동으로 설치합니다.
+2.  `C:\Users\[사용자명]\.gemini\` 디렉토리를 생성하고 `GEMINI.md` 파일을 배치합니다.
+3.  글로벌 MCP 패키지(`@modelcontextprotocol/server-sequential-thinking` 및 `oh-my-agent`)를 글로벌 npm으로 자동 설치합니다.
+4.  기존 설정을 유지하면서 전역 설정 파일(`%APPDATA%\Code\User\globalSettings.json`)의 `mcpServers`에 `sequential-thinking` 설정을 안전하게 등록/갱신합니다.
 
 ---
 
