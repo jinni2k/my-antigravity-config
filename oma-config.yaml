@@ -6,7 +6,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Response language (ko, en, ja, zh, ...)
-language: en
+language: ko
 
 # Translation voice preference for oma-translator skill.
 #   formal      — technical writer / reporter style, complete sentences, no fragments,
