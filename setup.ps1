@@ -1,5 +1,5 @@
 # Antigravity IDE Environment Sync Script for Windows
-# This script copies rules, installs global MCP servers, registers configuration, and applies Windows/Antigravity patches.
+# This script copies rules, installs global MCP servers, registers configuration, and applies Windows/Antigravity patches dynamically.
 
 $ErrorActionPreference = "Stop"
 
@@ -25,6 +25,15 @@ if (-not (Test-Path $geminiDir)) {
     New-Item -ItemType Directory -Path $geminiDir -Force | Out-Null
     Write-Host "Created directory: $geminiDir" -ForegroundColor Yellow
 }
+
+# Generate onboarding.json to resolve Antigravity CLI Auth (❌ -> ✅)
+$onboardingDir = Join-Path $geminiDir "antigravity-cli\cache"
+$onboardingPath = Join-Path $onboardingDir "onboarding.json"
+if (-not (Test-Path $onboardingDir)) {
+    New-Item -ItemType Directory -Path $onboardingDir -Force | Out-Null
+}
+'{ "onboardingComplete": true }' | Out-File $onboardingPath -Encoding utf8 -Force
+Write-Host "✓ Injected onboarding.json to resolve Antigravity CLI Auth" -ForegroundColor Green
 
 # Get the script definition path
 $scriptPath = $MyInvocation.MyCommand.Definition
@@ -59,24 +68,35 @@ if (Get-Command npm -ErrorAction SilentlyContinue) {
     Write-Host "Installing required global npm packages..." -ForegroundColor Yellow
     npm install -g @modelcontextprotocol/server-sequential-thinking oh-my-agent @agentmemory/agentmemory
     Write-Host "✓ Global npm packages installed." -ForegroundColor Green
+    
+    # Run OMA install to initialize metadata (resolves "No oma install detected" warning)
+    Write-Host "Initializing oh-my-agent installation status..." -ForegroundColor Yellow
+    try {
+        & oh-my-agent install --global -y | Out-Null
+        & oh-my-agent install -y | Out-Null
+        Write-Host "✓ OMA installation status initialized." -ForegroundColor Green
+    } catch {
+        Write-Warning "Could not run OMA installation automatically: $_"
+    }
 } else {
     Write-Warning "npm not found. Please install Node.js first, then run 'npm install -g @modelcontextprotocol/server-sequential-thinking oh-my-agent @agentmemory/agentmemory' manually."
 }
 
 # 3. Apply critical Windows & Antigravity compatibility patches to oh-my-agent cli.js
+$cliPath = ""
 $npmRoot = & npm config get prefix
-$cliPath = Join-Path $npmRoot "node_modules\oh-my-agent\bin\cli.js"
 
-# If the standard location doesn't exist, search in PATH directory
-if (-not (Test-Path $cliPath)) {
-    $hermesNodePath = Join-Path $env:USERPROFILE "AppData\Local\hermes\node\node_modules\oh-my-agent\bin\cli.js"
-    if (Test-Path $hermesNodePath) {
-        $cliPath = $hermesNodePath
-    }
-}
+# Detect various candidate locations for oh-my-agent cli.js
+$cand1 = Join-Path $npmRoot "node_modules\oh-my-agent\bin\cli.js"
+$cand2 = Join-Path $env:USERPROFILE "AppData\Roaming\npm\node_modules\oh-my-agent\bin\cli.js"
+$cand3 = Join-Path $env:USERPROFILE "AppData\Local\hermes\node\node_modules\oh-my-agent\bin\cli.js"
 
-if (Test-Path $cliPath) {
-    Write-Host "Applying Windows compatibility patches to oh-my-agent..." -ForegroundColor Yellow
+if (Test-Path $cand1) { $cliPath = $cand1 }
+elseif (Test-Path $cand2) { $cliPath = $cand2 }
+elseif (Test-Path $cand3) { $cliPath = $cand3 }
+
+if ($cliPath -and (Test-Path $cliPath)) {
+    Write-Host "Applying Windows compatibility patches to oh-my-agent cli.js ($cliPath)..." -ForegroundColor Yellow
     
     # Save a temporary patching node script and run it
     $patchTempScript = Join-Path $env:TEMP "oma_patch.js"
@@ -288,17 +308,28 @@ if (Test-Path $syncScript) {
     & powershell -ExecutionPolicy Bypass -File $syncScript -Pull
 }
 
-# 10. Auto-setup state & memories if run inside a project directory with .agents configuration
+# 10. Resolve OMA project/global state and memory warnings
+Write-Host "Initializing system-wide state & memories..." -ForegroundColor Yellow
+
+$globalStateDir = Join-Path $env:USERPROFILE ".agents\state"
+if (-not (Test-Path $globalStateDir)) {
+    New-Item -ItemType Directory -Path $globalStateDir -Force | Out-Null
+}
+
 if (Test-Path ".agents") {
     $projectStateDir = ".agents\state"
     if (-not (Test-Path $projectStateDir)) {
         New-Item -ItemType Directory -Path $projectStateDir -Force | Out-Null
         Write-Host "✓ Created local project state folder: $projectStateDir" -ForegroundColor Green
     }
-    
-    # Initialize Serena memory inside the project
+}
+
+# Run memory schema init (resolves Serena Memory warnings)
+try {
     & oh-my-agent memory:init --force | Out-Null
     Write-Host "✓ Initialized Serena memory schema in .serena/memories." -ForegroundColor Green
+} catch {
+    Write-Warning "Could not initialize Serena memory directory: $_"
 }
 
 Write-Host "Sync completed successfully!" -ForegroundColor Green
