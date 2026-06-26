@@ -140,7 +140,7 @@ if (fs.existsSync(cliPath)) {
 
     // 3. Minification-resistant RegExp Jt5 spawn Option Patch
     const spawnRegex = /([a-zA-Z0-9_$]+)\s*=\s*([a-zA-Z0-9_$]+)\s*\(\s*([a-zA-Z0-9_$]+)\s*,\s*\[\s*\]\s*,\s*\{\s*detached\s*:\s*!0\s*,\s*cwd\s*:\s*([a-zA-Z0-9_$]+)\(([a-zA-Z0-9_$]+)\)\s*,\s*env\s*:\s*\{\s*\.\.\.([a-zA-Z0-9_$]+)\s*,\s*III_REST_PORT\s*:\s*([a-zA-Z0-9_$]+)\(([a-zA-Z0-9_$]+)\)\}\s*,\s*stdio\s*:\s*["']ignore["']\}\s*\)/;
-    const spawnReplacement = 'let $1=$2($3,[],{detached:!0,shell:process.platform==="win32",cwd:$4($5),env:{...$6,III_REST_PORT:$7($8)},stdio:"ignore"})';
+    const spawnReplacement = '$1=$2($3,[],{detached:!0,shell:process.platform==="win32",cwd:$4($5),env:{...$6,III_REST_PORT:$7($8)},stdio:"ignore"})';
     
     if (spawnRegex.test(content)) {
         content = content.replace(spawnRegex, spawnReplacement);
