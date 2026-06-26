@@ -297,7 +297,7 @@ try {
     Run-OmaCommand "memory:setup --port 3111" | Out-Null
     
     # Start process fully detached on Windows
-    Start-Process -FilePath "agentmemory" -ArgumentList "--port 3111" -WindowStyle Hidden -ErrorAction SilentlyContinue
+    Start-Process -FilePath "cmd.exe" -ArgumentList "/c agentmemory --port 3111" -WindowStyle Hidden -ErrorAction SilentlyContinue
     
     # Wait until daemon binds and is reachable (HTTP warm-up loop)
     Write-Host "Waiting for AgentMemory daemon to initialize..." -ForegroundColor Yellow
