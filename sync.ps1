@@ -62,7 +62,7 @@ if (-not $HasOrigin) {
     
     # Automate private repository creation and initial push
     Write-Host "🚀 Creating private GitHub repository 'oh-my-agent-config'..." -ForegroundColor Cyan
-    gh repo create jinni2k/oh-my-agent-config --private --source=. --remote=origin --push --default-branch=master
+    gh repo create jinni2k/oh-my-agent-config --private --source=. --remote=origin --push
     
     if ($LASTEXITCODE -eq 0) {
         Write-Host "🎉 Private repository created and configurations pushed successfully!" -ForegroundColor Green
