@@ -61,12 +61,12 @@ if (-not $HasOrigin) {
     git commit -m "chore(config): Initial settings commit" 2>$null
     
     # Automate private repository creation and initial push
-    Write-Host "🚀 Creating private GitHub repository 'oh-my-agent-config'..." -ForegroundColor Cyan
-    gh repo create jinni2k/oh-my-agent-config --private --source=. --remote=origin --push
+    Write-Host "🚀 Creating private GitHub repository 'my-antigravity-config'..." -ForegroundColor Cyan
+    gh repo create jinni2k/my-antigravity-config --private --source=. --remote=origin --push
     
     if ($LASTEXITCODE -eq 0) {
         Write-Host "🎉 Private repository created and configurations pushed successfully!" -ForegroundColor Green
-        Write-Host "Repo URL: https://github.com/jinni2k/oh-my-agent-config" -ForegroundColor Green
+        Write-Host "Repo URL: https://github.com/jinni2k/my-antigravity-config" -ForegroundColor Green
         Exit 0
     } else {
         Write-Host "❌ Automated repository creation failed. Please check your GitHub permissions or" -ForegroundColor Red

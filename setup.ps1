@@ -139,4 +139,17 @@ if (-not (Get-Command sync-ag -ErrorAction SilentlyContinue)) {
     Write-Warning "Could not register 'sync-ag' shortcut in profile: $_"
 }
 
+# 5. Automatically pull and restore .agents settings from GitHub
+$agentsDir = Join-Path $HOME ".agents"
+if (-not (Test-Path $agentsDir)) {
+    Write-Host ".agents directory not found. Cloning from GitHub..." -ForegroundColor Yellow
+    git clone https://github.com/jinni2k/my-antigravity-config $agentsDir
+}
+
+$syncScript = Join-Path $agentsDir "sync.ps1"
+if (Test-Path $syncScript) {
+    Write-Host "Syncing oh-my-agent configurations and restoring skills..." -ForegroundColor Yellow
+    & powershell -ExecutionPolicy Bypass -File $syncScript -Pull
+}
+
 Write-Host "Sync completed successfully!" -ForegroundColor Green

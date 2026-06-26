@@ -35,7 +35,7 @@ cd ~\.agents
 새 컴퓨터의 사용자 홈 디렉토리 하위에 `.agents` 폴더 이름으로 이 저장소를 클론합니다.
 ```powershell
 cd ~
-git clone https://github.com/jinni2k/oh-my-agent-config .agents
+git clone https://github.com/jinni2k/my-antigravity-config .agents
 ```
 
 #### B. 설정 복원 및 스킬 다운로드
