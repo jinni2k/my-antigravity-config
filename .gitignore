@@ -1,0 +1,27 @@
+# oh-my-agent GitHub Sync gitignore
+
+# 락 파일 및 임시 파일
+_install.lock
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# 세션 진행 상태 및 캐시 (비대화형 로그 및 상태 보존 정보 제외)
+state/
+.serena/
+
+# 스킬 파일 무시 (다른 컴퓨터에서 oh-my-agent doctor / install 시 레포지토리로부터 자동 다운로드)
+skills/
+
+# 만약 개인이 직접 코딩한 커스텀 스킬이 있다면, 아래와 같이 주석을 풀고 폴더명을 지정하여 깃 추적에 포함할 수 있습니다.
+# !skills/my-custom-skill/
+
+# 추적 대상 명시 (명시적으로 유지해야 하는 환경 설정 및 구성 요소들)
+!mcp.json
+!oma-config.yaml
+!rules/
+!workflows/
+!sync-push.ps1
+!sync-pull.ps1
+!README.md
