@@ -290,15 +290,19 @@ try {
     Write-Warning "Failed to start AgentMemory daemon: $_"
 }
 
-# 9. Automatically pull and restore .agents settings from GitHub
+# 9. Automatically pull and restore .agents settings from GitHub (force reset to avoid conflicts)
 $agentsDir = Join-Path $env:USERPROFILE ".agents"
 if (-not (Test-Path $agentsDir)) {
     Write-Host ".agents directory not found. Cloning from GitHub..." -ForegroundColor Yellow
     git clone https://github.com/jinni2k/my-antigravity-config $agentsDir
 } else {
-    Write-Host "Updating local .agents configurations from GitHub..." -ForegroundColor Yellow
+    Write-Host "Updating local .agents configurations from GitHub (Forcing Reset)..." -ForegroundColor Yellow
     Push-Location $agentsDir
-    git pull origin master
+    git fetch --all
+    git reset --hard origin/master
+    if ($LASTEXITCODE -ne 0) {
+        git reset --hard origin/main
+    }
     Pop-Location
 }
 
