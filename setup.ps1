@@ -299,22 +299,23 @@ try {
     # Start process fully detached on Windows
     Start-Process -FilePath "cmd.exe" -ArgumentList "/c agentmemory --port 3111" -WindowStyle Hidden -ErrorAction SilentlyContinue
     
-    # Wait until daemon binds and is reachable (HTTP warm-up loop)
+    # Wait until daemon binds and is reachable (HTTP health check warm-up loop)
     Write-Host "Waiting for AgentMemory daemon to initialize..." -ForegroundColor Yellow
-    $maxAttempts = 15
+    $maxAttempts = 20
     $attempt = 1
     $online = $false
     while ($attempt -le $maxAttempts -and -not $online) {
         try {
-            $response = Invoke-WebRequest -Uri "http://127.0.0.1:3111" -TimeoutSec 1 -UseBasicParsing -ErrorAction Stop
-            $online = $true
-        } catch {
-            if ($null -ne $_.Exception -and $null -ne $_.Exception.Response) {
+            $response = Invoke-WebRequest -Uri "http://127.0.0.1:3111/agentmemory/health" -TimeoutSec 1 -UseBasicParsing -ErrorAction Stop
+            if ($response.StatusCode -eq 200) {
                 $online = $true
             } else {
-                Start-Sleep -Milliseconds 600
+                Start-Sleep -Milliseconds 500
                 $attempt++
             }
+        } catch {
+            Start-Sleep -Milliseconds 500
+            $attempt++
         }
     }
     
