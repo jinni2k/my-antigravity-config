@@ -5,6 +5,11 @@ $ErrorActionPreference = "Stop"
 
 Write-Host "Starting Antigravity environment sync..." -ForegroundColor Cyan
 
+# Preserve original location and force Cwd to user profile to prevent EPERM warnings in admin/system32 paths
+$originalLocation = Get-Location
+Set-Location -Path $env:USERPROFILE
+Write-Host "✓ Operation context switched to user profile directory ($env:USERPROFILE)" -ForegroundColor Green
+
 # 0. Check and install Antigravity CLI (agy) if not installed
 if (-not (Get-Command agy -ErrorAction SilentlyContinue)) {
     Write-Host "Antigravity CLI (agy) not found. Installing..." -ForegroundColor Yellow
@@ -20,7 +25,7 @@ if (-not (Get-Command agy -ErrorAction SilentlyContinue)) {
 }
 
 # 1. Ensure .gemini directory exists and copy GEMINI.md
-$geminiDir = "$HOME\.gemini"
+$geminiDir = "$env:USERPROFILE\.gemini"
 if (-not (Test-Path $geminiDir)) {
     New-Item -ItemType Directory -Path $geminiDir -Force | Out-Null
     Write-Host "Created directory: $geminiDir" -ForegroundColor Yellow
@@ -108,13 +113,14 @@ if (fs.existsSync(cliPath)) {
     let content = fs.readFileSync(cliPath, 'utf8');
     let modified = false;
 
-    // 1. Du2 Patch (Antigravity mapping)
-    const target1 = 'J={gemini:{path:`${z}/.gemini/settings.json`,type:"json"},claude:{path:`${z}/.claude.json`,type:"json"},codex:{path:`${z}/.codex/config.toml`,type:"toml"}}[$];';
-    const replacement1 = 'J={gemini:{path:`${z}/.gemini/settings.json`,type:"json"},claude:{path:`${z}/.claude.json`,type:"json"},codex:{path:`${z}/.codex/config.toml`,type:"toml"},antigravity:{path:`${z}/.gemini/antigravity-cli/settings.json`,type:"json"}}[$];';
-    if (content.includes(target1)) {
-        content = content.replace(target1, replacement1);
+    // 1. RegExp Du2 Patch (Antigravity settings path mapping)
+    const du2Regex = /J\s*=\s*\{\s*gemini\s*:\s*\{\s*path\s*:\s*[`'"]\$\{z\}\/\.gemini\/settings\.json[`'"]\s*,\s*type\s*:\s*["']json["']\}\s*,\s*claude\s*:\s*\{\s*path\s*:\s*[`'"]\$\{z\}\/\.claude\.json[`'"]\s*,\s*type\s*:\s*["']json["']\}\s*,\s*codex\s*:\s*\{\s*path\s*:\s*[`'"]\$\{z\}\/\.codex\/config\.toml[`'"]\s*,\s*type\s*:\s*["']toml["']\}\s*\}\s*\[\$\]\s*;/;
+    const du2Replacement = 'J={gemini:{path:`${z}/.gemini/settings.json`,type:"json"},claude:{path:`${z}/.claude.json`,type:"json"},codex:{path:`${z}/.codex/config.toml`,type:"toml"},antigravity:{path:`${z}/.gemini/antigravity-cli/settings.json`,type:"json"}}[$];';
+    
+    if (du2Regex.test(content)) {
+        content = content.replace(du2Regex, du2Replacement);
         modified = true;
-        console.log('  -> Patched Antigravity settings path');
+        console.log('  -> Patched Antigravity settings path mapping');
     }
 
     // 2. PATH split Patch (Windows delimiter)
@@ -126,11 +132,12 @@ if (fs.existsSync(cliPath)) {
         console.log('  -> Patched PATH splitting delimiter');
     }
 
-    // 3. Jt5 spawn shell Option Patch (prevent instant death of daemon on Windows)
-    const target3 = 'let K=Jt5(J,[],{detached:!0,cwd:e$(z),env:{...G,III_REST_PORT:String(Q)},stdio:"ignore"})';
-    const replacement3 = 'let K=Jt5(J,[],{detached:!0,shell:process.platform==="win32",cwd:e$(z),env:{...G,III_REST_PORT:String(Q)},stdio:"ignore"})';
-    if (content.includes(target3)) {
-        content = content.replace(target3, replacement3);
+    // 3. RegExp Jt5 spawn Option Patch (Prevent instant death of daemon on Windows)
+    const spawnRegex = /let\s+K\s*=\s*Jt5\s*\(\s*J\s*,\s*\[\s*\]\s*,\s*\{\s*detached\s*:\s*!0\s*,\s*cwd\s*:\s*e\$\(z\)\s*,\s*env\s*:\s*\{\s*\.\.\.G\s*,\s*III_REST_PORT\s*:\s*String\(Q\)\}\s*,\s*stdio\s*:\s*["']ignore["']\}\s*\)/;
+    const spawnReplacement = 'let K=Jt5(J,[],{detached:!0,shell:process.platform==="win32",cwd:e$(z),env:{...G,III_REST_PORT:String(Q)},stdio:"ignore"})';
+    
+    if (spawnRegex.test(content)) {
+        content = content.replace(spawnRegex, spawnReplacement);
         modified = true;
         console.log('  -> Patched daemon spawn options');
     }
@@ -290,8 +297,17 @@ try {
     Write-Warning "Failed to start AgentMemory daemon: $_"
 }
 
-# 9. Automatically pull and restore .agents settings from GitHub (force reset to avoid conflicts)
+# 9. Automatically pull and restore .agents settings from GitHub (force reset and check .git directory)
 $agentsDir = Join-Path $env:USERPROFILE ".agents"
+
+# Robust check for broken or invalid .agents repository
+if (Test-Path $agentsDir) {
+    if (-not (Test-Path (Join-Path $agentsDir ".git"))) {
+        Write-Host "Found non-git .agents folder. Re-creating..." -ForegroundColor Yellow
+        Remove-Item $agentsDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
 if (-not (Test-Path $agentsDir)) {
     Write-Host ".agents directory not found. Cloning from GitHub..." -ForegroundColor Yellow
     git clone https://github.com/jinni2k/my-antigravity-config $agentsDir
@@ -335,5 +351,9 @@ try {
 } catch {
     Write-Warning "Could not initialize Serena memory directory: $_"
 }
+
+# Restore original location context
+Set-Location -Path $originalLocation
+Write-Host "✓ Restored original operation context directory ($originalLocation)" -ForegroundColor Green
 
 Write-Host "Sync completed successfully!" -ForegroundColor Green
