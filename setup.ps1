@@ -298,7 +298,29 @@ try {
     
     # Start process fully detached on Windows
     Start-Process -FilePath "agentmemory" -ArgumentList "--port 3111" -WindowStyle Hidden -ErrorAction SilentlyContinue
-    Write-Host "✓ AgentMemory background daemon started on port 3111." -ForegroundColor Green
+    
+    # Wait until daemon binds and is reachable (warm-up loop)
+    Write-Host "Waiting for AgentMemory daemon to initialize..." -ForegroundColor Yellow
+    $maxAttempts = 12
+    $attempt = 1
+    $online = $false
+    while ($attempt -le $maxAttempts -and -not $online) {
+        try {
+            $tcpClient = New-Object System.Net.Sockets.TcpClient
+            $tcpClient.Connect("127.0.0.1", 3111)
+            $tcpClient.Close()
+            $online = $true
+        } catch {
+            Start-Sleep -Milliseconds 500
+            $attempt++
+        }
+    }
+    
+    if ($online) {
+        Write-Host "✓ AgentMemory background daemon started on port 3111." -ForegroundColor Green
+    } else {
+        Write-Warning "AgentMemory started but could not confirm online status on port 3111 within timeout."
+    }
 } catch {
     Write-Warning "Failed to start AgentMemory daemon: $_"
 }
