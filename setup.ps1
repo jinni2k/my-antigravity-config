@@ -299,20 +299,22 @@ try {
     # Start process fully detached on Windows
     Start-Process -FilePath "agentmemory" -ArgumentList "--port 3111" -WindowStyle Hidden -ErrorAction SilentlyContinue
     
-    # Wait until daemon binds and is reachable (warm-up loop)
+    # Wait until daemon binds and is reachable (HTTP warm-up loop)
     Write-Host "Waiting for AgentMemory daemon to initialize..." -ForegroundColor Yellow
-    $maxAttempts = 12
+    $maxAttempts = 15
     $attempt = 1
     $online = $false
     while ($attempt -le $maxAttempts -and -not $online) {
         try {
-            $tcpClient = New-Object System.Net.Sockets.TcpClient
-            $tcpClient.Connect("127.0.0.1", 3111)
-            $tcpClient.Close()
+            $response = Invoke-WebRequest -Uri "http://127.0.0.1:3111" -TimeoutSec 1 -UseBasicParsing -ErrorAction Stop
             $online = $true
         } catch {
-            Start-Sleep -Milliseconds 500
-            $attempt++
+            if ($null -ne $_.Exception -and $null -ne $_.Exception.Response) {
+                $online = $true
+            } else {
+                Start-Sleep -Milliseconds 600
+                $attempt++
+            }
         }
     }
     
