@@ -119,9 +119,9 @@ if (fs.existsSync(cliPath)) {
     let content = fs.readFileSync(cliPath, 'utf8');
     let modified = false;
 
-    // 1. RegExp Du2 Patch (Antigravity settings path mapping)
-    const du2Regex = /J\s*=\s*\{\s*gemini\s*:\s*\{\s*path\s*:\s*[`'"]\$\{z\}\/\.gemini\/settings\.json[`'"]\s*,\s*type\s*:\s*["']json["']\}\s*,\s*claude\s*:\s*\{\s*path\s*:\s*[`'"]\$\{z\}\/\.claude\.json[`'"]\s*,\s*type\s*:\s*["']json["']\}\s*,\s*codex\s*:\s*\{\s*path\s*:\s*[`'"]\$\{z\}\/\.codex\/config\.toml[`'"]\s*,\s*type\s*:\s*["']toml["']\}\s*\}\s*\[\$\]\s*;/;
-    const du2Replacement = 'J={gemini:{path:`${z}/.gemini/settings.json`,type:"json"},claude:{path:`${z}/.claude.json`,type:"json"},codex:{path:`${z}/.codex/config.toml`,type:"toml"},antigravity:{path:`${z}/.gemini/antigravity-cli/settings.json`,type:"json"}}[$];';
+    // 1. Minification-resistant RegExp Du2 Patch
+    const du2Regex = /([a-zA-Z0-9_$]+)\s*=\s*\{\s*gemini\s*:\s*\{\s*path\s*:\s*[`'"]\$\{z\}\/\.gemini\/settings\.json[`'"]\s*,\s*type\s*:\s*["']json["']\}\s*,\s*claude\s*:\s*\{\s*path\s*:\s*[`'"]\$\{z\}\/\.claude\.json[`'"]\s*,\s*type\s*:\s*["']json["']\}\s*,\s*codex\s*:\s*\{\s*path\s*:\s*[`'"]\$\{z\}\/\.codex\/config\.toml[`'"]\s*,\s*type\s*:\s*["']toml["']\}\s*\}\s*\[\$\]\s*;/;
+    const du2Replacement = '$1={gemini:{path:`${z}/.gemini/settings.json`,type:"json"},claude:{path:`${z}/.claude.json`,type:"json"},codex:{path:`${z}/.codex/config.toml`,type:"toml"},antigravity:{path:`${z}/.gemini/antigravity-cli/settings.json`,type:"json"}}[$];';
     
     if (du2Regex.test(content)) {
         content = content.replace(du2Regex, du2Replacement);
@@ -138,9 +138,9 @@ if (fs.existsSync(cliPath)) {
         console.log('  -> Patched PATH splitting delimiter');
     }
 
-    // 3. RegExp Jt5 spawn Option Patch (Prevent instant death of daemon on Windows)
-    const spawnRegex = /let\s+K\s*=\s*Jt5\s*\(\s*J\s*,\s*\[\s*\]\s*,\s*\{\s*detached\s*:\s*!0\s*,\s*cwd\s*:\s*e\$\(z\)\s*,\s*env\s*:\s*\{\s*\.\.\.G\s*,\s*III_REST_PORT\s*:\s*String\(Q\)\}\s*,\s*stdio\s*:\s*["']ignore["']\}\s*\)/;
-    const spawnReplacement = 'let K=Jt5(J,[],{detached:!0,shell:process.platform==="win32",cwd:e$(z),env:{...G,III_REST_PORT:String(Q)},stdio:"ignore"})';
+    // 3. Minification-resistant RegExp Jt5 spawn Option Patch
+    const spawnRegex = /([a-zA-Z0-9_$]+)\s*=\s*([a-zA-Z0-9_$]+)\s*\(\s*([a-zA-Z0-9_$]+)\s*,\s*\[\s*\]\s*,\s*\{\s*detached\s*:\s*!0\s*,\s*cwd\s*:\s*([a-zA-Z0-9_$]+)\(([a-zA-Z0-9_$]+)\)\s*,\s*env\s*:\s*\{\s*\.\.\.([a-zA-Z0-9_$]+)\s*,\s*III_REST_PORT\s*:\s*([a-zA-Z0-9_$]+)\(([a-zA-Z0-9_$]+)\)\}\s*,\s*stdio\s*:\s*["']ignore["']\}\s*\)/;
+    const spawnReplacement = 'let $1=$2($3,[],{detached:!0,shell:process.platform==="win32",cwd:$4($5),env:{...$6,III_REST_PORT:$7($8)},stdio:"ignore"})';
     
     if (spawnRegex.test(content)) {
         content = content.replace(spawnRegex, spawnReplacement);
