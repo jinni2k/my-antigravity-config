@@ -9,12 +9,16 @@ param (
     [switch]$Pull
 )
 
-# 1. Path setups (encoding warning bypass)
+# Force UTF-8 coding to prevent Hangul path corruptions on Windows
+$OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::InputEncoding = [System.Text.Encoding]::UTF8
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
 $ErrorActionPreference = "Continue" # External CLI stderr shouldn't crash script
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location -Path $ScriptDir
 
-# --- Operation Functions (Defined FIRST to prevent PowerShell Parse Order errors) ---
+# --- Operation Functions ---
 
 function Backup-Settings {
     Write-Host ""
@@ -72,7 +76,7 @@ function Restore-Settings {
     Write-Host "👉   oh-my-agent link" -ForegroundColor Cyan
 }
 
-# --- Main Script Logic (Starts execution here) ---
+# --- Main Script Logic ---
 
 Write-Host "🛸 [OMA SYNC] Starting unified synchronization tool..." -ForegroundColor Cyan
 
