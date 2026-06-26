@@ -5,10 +5,16 @@ $ErrorActionPreference = "Stop"
 
 Write-Host "Starting Antigravity environment sync..." -ForegroundColor Cyan
 
-# Preserve original location and force Cwd to user profile to prevent EPERM warnings in admin/system32 paths
+# Preserve original location and set location
 $originalLocation = Get-Location
 Set-Location -Path $env:USERPROFILE
-Write-Host "✓ Operation context switched to user profile directory ($env:USERPROFILE)" -ForegroundColor Green
+
+# Helper function to run OMA commands in a clean Cwd to avoid EPERM on Windows
+function Run-OmaCommand ($argsList) {
+    $targetDir = $env:USERPROFILE
+    $cmdString = "cd /d `"$targetDir`" && oh-my-agent $argsList"
+    cmd.exe /c $cmdString
+}
 
 # 0. Check and install Antigravity CLI (agy) if not installed
 if (-not (Get-Command agy -ErrorAction SilentlyContinue)) {
@@ -74,11 +80,11 @@ if (Get-Command npm -ErrorAction SilentlyContinue) {
     npm install -g @modelcontextprotocol/server-sequential-thinking oh-my-agent @agentmemory/agentmemory
     Write-Host "✓ Global npm packages installed." -ForegroundColor Green
     
-    # Run OMA install to initialize metadata (resolves "No oma install detected" warning)
+    # Run OMA install in a clean Cwd to avoid EPERM on admin paths
     Write-Host "Initializing oh-my-agent installation status..." -ForegroundColor Yellow
     try {
-        & oh-my-agent install --global -y | Out-Null
-        & oh-my-agent install -y | Out-Null
+        Run-OmaCommand "install --global -y" | Out-Null
+        Run-OmaCommand "install -y" | Out-Null
         Write-Host "✓ OMA installation status initialized." -ForegroundColor Green
     } catch {
         Write-Warning "Could not run OMA installation automatically: $_"
@@ -284,11 +290,11 @@ if (-not (Get-Command sync-ag -ErrorAction SilentlyContinue)) {
     Write-Warning "Could not register 'sync-ag' shortcut in profile: $_"
 }
 
-# 8. Start AgentMemory Daemon securely in the background
+# 8. Start AgentMemory Daemon securely in the background (using cmd to bypass Cwd lock)
 Write-Host "Configuring and starting AgentMemory daemon..." -ForegroundColor Yellow
 try {
-    # Initialize config
-    & oh-my-agent memory:setup --port 3111 | Out-Null
+    # Initialize config in user profile directory
+    Run-OmaCommand "memory:setup --port 3111" | Out-Null
     
     # Start process fully detached on Windows
     Start-Process -FilePath "agentmemory" -ArgumentList "--port 3111" -WindowStyle Hidden -ErrorAction SilentlyContinue
@@ -325,7 +331,10 @@ if (-not (Test-Path $agentsDir)) {
 $syncScript = Join-Path $agentsDir "sync.ps1"
 if (Test-Path $syncScript) {
     Write-Host "Syncing oh-my-agent configurations and restoring skills..." -ForegroundColor Yellow
-    & powershell -ExecutionPolicy Bypass -File $syncScript -Pull
+    
+    # Invoke sync.ps1 using cmd to prevent Cwd pollution from PowerShell process Cwd
+    $cmdString = "cd /d `"$agentsDir`" && powershell -ExecutionPolicy Bypass -File sync.ps1 -Pull"
+    cmd.exe /c $cmdString
 }
 
 # 10. Resolve OMA project/global state and memory warnings
@@ -344,9 +353,9 @@ if (Test-Path ".agents") {
     }
 }
 
-# Run memory schema init (resolves Serena Memory warnings)
+# Run memory schema init in a clean context directory
 try {
-    & oh-my-agent memory:init --force | Out-Null
+    Run-OmaCommand "memory:init --force" | Out-Null
     Write-Host "✓ Initialized Serena memory schema in .serena/memories." -ForegroundColor Green
 } catch {
     Write-Warning "Could not initialize Serena memory directory: $_"

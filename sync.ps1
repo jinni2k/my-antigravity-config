@@ -69,7 +69,12 @@ function Restore-Settings {
     Write-Host "💡 Info: Press ENTER when prompted to restore 32 missing skills." -ForegroundColor Yellow
     Write-Host "------------------------------------------------------------" -ForegroundColor Gray
     
-    & oh-my-agent doctor
+    # Bypass PowerShell Cwd lock using cmd.exe directory redirection on Windows
+    if ($env:OS -eq "Windows_NT") {
+        cmd.exe /c "cd /d `"$ScriptDir`" && oh-my-agent doctor"
+    } else {
+        & oh-my-agent doctor
+    }
     
     Write-Host "------------------------------------------------------------" -ForegroundColor Gray
     Write-Host "✅ Restore complete! Inside your project workspace, run:" -ForegroundColor Green
