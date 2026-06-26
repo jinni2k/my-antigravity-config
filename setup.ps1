@@ -144,6 +144,11 @@ $agentsDir = Join-Path $HOME ".agents"
 if (-not (Test-Path $agentsDir)) {
     Write-Host ".agents directory not found. Cloning from GitHub..." -ForegroundColor Yellow
     git clone https://github.com/jinni2k/my-antigravity-config $agentsDir
+} else {
+    Write-Host "Updating local .agents configurations from GitHub..." -ForegroundColor Yellow
+    Push-Location $agentsDir
+    git pull origin master
+    Pop-Location
 }
 
 $syncScript = Join-Path $agentsDir "sync.ps1"
